@@ -5,6 +5,11 @@
 #   (optional) Name of the backend in manila.conf that
 #   these settings will reside in
 #
+# [*driver_handles_share_servers*]
+#  (required) Denotes whether the driver should handle the responsibility of
+#  managing share servers. This must be set to false if the driver is to
+#  operate without managing share servers.
+#
 # [*smb_template_config_path*]
 #   (optional) Path to smb config.
 #   Defaults to: $state_path/smb.conf
@@ -43,8 +48,13 @@
 #   Defaults to: ['CIFS=manila.share.drivers.generic.CIFSHelper',
 #                 'NFS=manila.share.drivers.generic.NFSHelper']
 #
+# [*cinder_volume_type*]
+#   (optional) Name or id of cinder volume type which will be used for all
+#   volumes created by driver.
+#
 define manila::backend::generic (
   $share_backend_name               = $name,
+  $driver_handles_share_servers     = undef,
   $smb_template_config_path         = '$state_path/smb.conf',
   $volume_name_template             = 'manila-share-%s',
   $volume_snapshot_name_template    = 'manila-snapshot-%s',
@@ -55,12 +65,14 @@ define manila::backend::generic (
   $share_volume_fstype              = 'ext4',
   $share_helpers = ['CIFS=manila.share.drivers.generic.CIFSHelper',
                     'NFS=manila.share.drivers.generic.NFSHelper'],
+  $cinder_volume_type               = undef,
 ) {
 
   $share_driver = 'manila.share.drivers.generic.GenericShareDriver'
 
   manila_config {
     "${name}/share_backend_name":               value => $share_backend_name;
+    "${name}/driver_handles_share_servers":     value => $driver_handles_share_servers;
     "${name}/share_driver":                     value => $share_driver;
     "${name}/smb_template_config_path":         value => $smb_template_config_path;
     "${name}/volume_name_template":             value => $volume_name_template;
@@ -71,5 +83,6 @@ define manila::backend::generic (
     "${name}/service_instance_smb_config_path": value => $service_instance_smb_config_path;
     "${name}/share_volume_fstype":              value => $share_volume_fstype;
     "${name}/share_helpers":                    value => join($share_helpers, ',');
+    "${name}/cinder_volume_type":               value => $cinder_volume_type;
   }
 }
